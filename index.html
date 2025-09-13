@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Chirp</title>
+</head>
+<body>
+  <h1>Chirp</h1>
+
+  <form id="postForm">
+    <input type="text" id="name" placeholder="Your full name" required><br><br>
+    <textarea id="message" placeholder="What's on your mind?" required></textarea><br><br>
+    <button type="submit">Post</button>
+  </form>
+
+  <h2>Feed</h2>
+  <div id="feed"></div>
+
+  <script>
+    const API_BASE = "https://chirp-backend-x5pm.onrender.com/api/posts";
+
+    function loadFeed() {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", API_BASE, true);
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          var posts = JSON.parse(xhr.responseText);
+          var feed = document.getElementById("feed");
+          feed.innerHTML = "";
+          for (var i = 0; i < posts.length; i++) {
+            var post = posts[i];
+            var el = document.createElement("p");
+            el.innerHTML = "<strong>" + escapeHTML(post.name) + ":</strong> " + escapeHTML(post.message);
+            feed.appendChild(el);
+          }
+        }
+      };
+      xhr.send();
+    }
+
+    document.getElementById("postForm").onsubmit = function (e) {
+      e.preventDefault();
+      var name = document.getElementById("name").value;
+      var message = document.getElementById("message").value;
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", API_BASE, true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onload = function () {
+        if (xhr.status === 201) {
+          document.getElementById("message").value = "";
+          loadFeed();
+        }
+      };
+      xhr.send(JSON.stringify({ name: name, message: message }));
+    };
+
+    // Prevent XSS by escaping user input
+    function escapeHTML(str) {
+      return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    loadFeed(); // Load on page start
+  </script>
+</body>
+</html>
