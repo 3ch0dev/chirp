@@ -697,23 +697,26 @@ fieldset>a>div>div>label:first-child,fieldset>a>div>div>label.lower,fieldset>a>d
 <body class="pinstripe">
 <panel>
 <label>
-3ch0dev
+Chirp
 </label>
 <fieldset>
 <div>
-<p align="center"><strong>Hello there!</strong></p>
-<p align="center">I'm 3ch0dev, a young developer making silly projects and web apps for old iOS devices :)</p>
+<p><strong>Write a tweet</strong></p>
+      <form id="postForm">
+    <input type="text" id="name" placeholder="Your full name" required><br><br>
+    <textarea id="message" placeholder="What's on your mind?" required></textarea><br><br>
+    <button type="submit">Post</button>
+  </form>
 </div>
 </fieldset>
 </panel>
 <panel>
 <label>
-My Projects
+Feed
 </label>
 <fieldset>
 <div>
-<p align="center"><strong>Chirp</strong></p>
-<p align="center">A web based social platform for iOS 6 where you can write short notes and interact with friends</p>
+  <div id="feed"></div>
 </div>
 </fieldset>
 </panel>
@@ -721,8 +724,55 @@ My Projects
 <fieldset>
             <div>
                 <div>
-                    <label>Coming soon!</label>
+                    <label>Chirp (int. beta. version 0)</label>
                 </div>
             </div>
     </fieldset>
     </panel>
+ <script>
+    const API_BASE = "https://YOUR-BACKEND.onrender.com/api/posts";
+
+    function loadFeed() {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", API_BASE, true);
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          var posts = JSON.parse(xhr.responseText);
+          var feed = document.getElementById("feed");
+          feed.innerHTML = "";
+          for (var i = 0; i < posts.length; i++) {
+            var post = posts[i];
+            var el = document.createElement("p");
+            el.innerHTML = "<strong>" + escapeHTML(post.name) + ":</strong> " + escapeHTML(post.message);
+            feed.appendChild(el);
+          }
+        }
+      };
+      xhr.send();
+    }
+
+    document.getElementById("postForm").onsubmit = function (e) {
+      e.preventDefault();
+      var name = document.getElementById("name").value;
+      var message = document.getElementById("message").value;
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", API_BASE, true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onload = function () {
+        if (xhr.status === 201) {
+          document.getElementById("message").value = "";
+          loadFeed();
+        }
+      };
+      xhr.send(JSON.stringify({ name: name, message: message }));
+    };
+
+    // Prevent XSS by escaping user input
+    function escapeHTML(str) {
+      return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    loadFeed(); // Load on page start
+  </script>
+  </body>
+</html>
